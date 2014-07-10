@@ -14,9 +14,13 @@ import (
 func main() {
      n := negroni.Classic()
 
+     // CORS for https://*.foo.com origins, allowing:
+     // - GET and POST methods
+     // - Origin header 
      opts := cors.Options{
-     	  AllowAllOrigins: true,
+     	  AllowOrigins:    []string{"https://*.foo.com"},
 	  AllowMethods:    []string{"GET", "POST"},
+	  AllowHeaders:	   []string{"Origin"},
      }
 
      n.Use(negroni.HandlerFunc(opts.Allow))
