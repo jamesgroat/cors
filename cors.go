@@ -165,7 +165,7 @@ func (o *Options) IsOriginAllowed(origin string) (allowed bool) {
 }
 
 // Allow enables CORS for requests those match the provided options.
-func Allow(opts *Options) http.HandlerFunc {
+func (opts *Options) Allow(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 	// Allow default headers if nothing is specified.
 	if len(opts.AllowHeaders) == 0 {
 		opts.AllowHeaders = defaultAllowHeaders
@@ -178,30 +178,31 @@ func Allow(opts *Options) http.HandlerFunc {
 		allowOriginPatterns = append(allowOriginPatterns, "^"+pattern+"$")
 	}
 
-	return func(res http.ResponseWriter, req *http.Request) {
-		var (
-			origin           = req.Header.Get(headerOrigin)
-			requestedMethod  = req.Header.Get(headerRequestMethod)
-			requestedHeaders = req.Header.Get(headerRequestHeaders)
-			// additional headers to be added
-			// to the response.
-			headers map[string]string
-		)
+	var (
+		origin           = req.Header.Get(headerOrigin)
+		requestedMethod  = req.Header.Get(headerRequestMethod)
+		requestedHeaders = req.Header.Get(headerRequestHeaders)
+		// additional headers to be added
+		// to the response.
+		headers map[string]string
+	)
 
-		if req.Method == "OPTIONS" &&
-			(requestedMethod != "" || requestedHeaders != "") {
-			// TODO: if preflight, respond with exact headers if allowed
-			headers = opts.PreflightHeader(origin, requestedMethod, requestedHeaders)
-			for key, value := range headers {
-				res.Header().Set(key, value)
-			}
-			res.WriteHeader(http.StatusOK)
-			return
-		}
-		headers = opts.Header(origin)
-
+	if req.Method == "OPTIONS" &&
+		(requestedMethod != "" || requestedHeaders != "") {
+		// TODO: if preflight, respond with exact headers if allowed
+		headers = opts.PreflightHeader(origin, requestedMethod, requestedHeaders)
 		for key, value := range headers {
 			res.Header().Set(key, value)
 		}
+		res.WriteHeader(http.StatusOK)
+		return
 	}
+	headers = opts.Header(origin)
+
+	for key, value := range headers {
+		res.Header().Set(key, value)
+	}
+
+	next(res, req)
+
 }
