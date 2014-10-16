@@ -1,4 +1,5 @@
-# cors
+# cors  
+[![wercker status](https://app.wercker.com/status/bbd90708c634abd65747ca5578de4a90/s "wercker status")](https://app.wercker.com/project/bykey/bbd90708c634abd65747ca5578de4a90)
 
 [Negroni](https://github.com/codegangsta/negroni) middleware/handler to enable CORS support.
 
