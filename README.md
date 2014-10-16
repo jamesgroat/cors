@@ -1,7 +1,6 @@
 # cors
 
-Negroni middleware/handler to enable CORS support.
-
+[Negroni](https://github.com/codegangsta/negroni) middleware/handler to enable CORS support.
 
 ## Usage
 
@@ -38,8 +37,9 @@ func main() {
 }
 ~~~
 
-### TODO
-- [ ] Port tests to use negroni
+###Documentation
+
+[Godoc](https://godoc.org/github.com/hariharan-uno/cors)
 
 ## Authors
 
