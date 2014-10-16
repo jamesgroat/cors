@@ -17,6 +17,7 @@ package cors
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -164,7 +165,6 @@ func Test_DefaultAllowHeaders(t *testing.T) {
 	}
 }
 
-/*
 func Test_Preflight(t *testing.T) {
 	recorder := NewRecorder()
 	n := negroni.New()
@@ -174,13 +174,17 @@ func Test_Preflight(t *testing.T) {
 		AllowHeaders:    []string{"Origin", "X-whatever", "X-CaseSensitive"},
 	}
 	n.Use(negroni.HandlerFunc(opts.Allow))
-
-	// TODO: Rewrite handler in negroni
-	m.Options("foo", func(res http.ResponseWriter) {
-		res.WriteHeader(500)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/foo", func(w http.ResponseWriter, req *http.Request) {
+		if req.Method == "OPTIONS" {
+			w.WriteHeader(500)
+			return
+		}
+		return
 	})
+	n.UseHandler(mux)
 
-	r, _ := http.NewRequest("OPTIONS", "foo", nil)
+	r, _ := http.NewRequest("OPTIONS", "/foo", nil)
 	r.Header.Add(headerRequestMethod, "PUT")
 	r.Header.Add(headerRequestHeaders, "X-whatever, x-casesensitive")
 	n.ServeHTTP(recorder, r)
@@ -210,7 +214,7 @@ func Test_Preflight(t *testing.T) {
 		t.Errorf("Status code is expected to be 200, found %d", recorder.Code)
 	}
 }
-*/
+
 func Benchmark_WithoutCORS(b *testing.B) {
 	recorder := httptest.NewRecorder()
 	n := negroni.New()
