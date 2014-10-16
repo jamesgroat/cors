@@ -166,13 +166,13 @@ func (o *Options) IsOriginAllowed(origin string) (allowed bool) {
 }
 
 // Allow enables CORS for requests those match the provided options.
-func (opts *Options) Allow(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
+func (o *Options) Allow(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 	// Allow default headers if nothing is specified.
-	if len(opts.AllowHeaders) == 0 {
-		opts.AllowHeaders = defaultAllowHeaders
+	if len(o.AllowHeaders) == 0 {
+		o.AllowHeaders = defaultAllowHeaders
 	}
 
-	for _, origin := range opts.AllowOrigins {
+	for _, origin := range o.AllowOrigins {
 		pattern := regexp.QuoteMeta(origin)
 		pattern = strings.Replace(pattern, "\\*", ".*", -1)
 		pattern = strings.Replace(pattern, "\\?", ".", -1)
@@ -191,14 +191,14 @@ func (opts *Options) Allow(res http.ResponseWriter, req *http.Request, next http
 	if req.Method == "OPTIONS" &&
 		(requestedMethod != "" || requestedHeaders != "") {
 		// TODO: if preflight, respond with exact headers if allowed
-		headers = opts.PreflightHeader(origin, requestedMethod, requestedHeaders)
+		headers = o.PreflightHeader(origin, requestedMethod, requestedHeaders)
 		for key, value := range headers {
 			res.Header().Set(key, value)
 		}
 		res.WriteHeader(http.StatusOK)
 		return
 	}
-	headers = opts.Header(origin)
+	headers = o.Header(origin)
 
 	for key, value := range headers {
 		res.Header().Set(key, value)
