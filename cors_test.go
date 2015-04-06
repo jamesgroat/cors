@@ -105,6 +105,45 @@ func Test_AllowRegexNoMatch(t *testing.T) {
 	}
 }
 
+
+func Test_AllowCredentials(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	n := negroni.New()
+	opts := &Options{
+		AllowAllOrigins:  true,
+		AllowCredentials: true,
+	}
+	n.Use(negroni.HandlerFunc(opts.Allow))
+
+	r, _ := http.NewRequest("PUT", "foo", nil)
+	n.ServeHTTP(recorder, r)
+
+	credentialsVal := recorder.HeaderMap.Get(headerAllowCredentials)
+
+	if credentialsVal != "true" {
+		t.Errorf("Allow-Credentials is expected to be true, found %v", credentialsVal)
+	}
+}
+
+func Test_AllowCredentialsDefault(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	n := negroni.New()
+	opts := &Options{
+		AllowAllOrigins:  true,
+		AllowCredentials: false,
+	}
+	n.Use(negroni.HandlerFunc(opts.Allow))
+
+	r, _ := http.NewRequest("PUT", "foo", nil)
+	n.ServeHTTP(recorder, r)
+
+	credentialsVal := recorder.HeaderMap.Get(headerAllowCredentials)
+
+	if credentialsVal != "" {
+		t.Errorf("Allow-Credentials is expected to be not set, found %v", credentialsVal)
+	}
+}
+
 func Test_OtherHeaders(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	n := negroni.New()
