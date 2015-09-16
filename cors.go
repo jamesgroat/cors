@@ -70,11 +70,7 @@ func (o *Options) Header(origin string) (headers map[string]string) {
 	}
 
 	// add allow origin
-	if o.AllowAllOrigins {
-		headers[headerAllowOrigin] = "*"
-	} else {
-		headers[headerAllowOrigin] = origin
-	}
+	headers[headerAllowOrigin] = origin
 
 	if (o.AllowCredentials) {
 		// add allow credentials
@@ -90,6 +86,8 @@ func (o *Options) Header(origin string) (headers map[string]string) {
 	if len(o.AllowHeaders) > 0 {
 		// TODO: Add default headers
 		headers[headerAllowHeaders] = strings.Join(o.AllowHeaders, ",")
+	} else {
+		headers[headerAllowHeaders] = strings.Join(defaultAllowHeaders, ",")
 	}
 
 	// add exposed header
@@ -118,12 +116,16 @@ func (o *Options) PreflightHeader(origin, rMethod, rHeaders string) (headers map
 		}
 	}
 
+	allowHeaders := o.AllowHeaders
+	if len(allowHeaders) == 0 {
+		allowHeaders = defaultAllowHeaders
+	}
 	// verify if requested headers are allowed
 	var allowed []string
 	for _, rHeader := range strings.Split(rHeaders, ",") {
 		rHeader = strings.TrimSpace(rHeader)
 	lookupLoop:
-		for _, allowedHeader := range o.AllowHeaders {
+		for _, allowedHeader := range allowHeaders {
 			if strings.ToLower(rHeader) == strings.ToLower(allowedHeader) {
 				allowed = append(allowed, rHeader)
 				break lookupLoop
@@ -136,11 +138,7 @@ func (o *Options) PreflightHeader(origin, rMethod, rHeaders string) (headers map
 	}
 
 	// add allow origin
-	if o.AllowAllOrigins {
-		headers[headerAllowOrigin] = "*"
-	} else {
-		headers[headerAllowOrigin] = origin
-	}
+	headers[headerAllowOrigin] = origin
 
 	// add allowed headers
 	if len(allowed) > 0 {
@@ -172,11 +170,6 @@ func (o *Options) IsOriginAllowed(origin string) (allowed bool) {
 
 // Allow enables CORS for requests those match the provided options.
 func (o *Options) Allow(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
-	// Allow default headers if nothing is specified.
-	if len(o.AllowHeaders) == 0 {
-		o.AllowHeaders = defaultAllowHeaders
-	}
-
 	for _, origin := range o.AllowOrigins {
 		pattern := regexp.QuoteMeta(origin)
 		pattern = strings.Replace(pattern, "\\*", ".*", -1)
