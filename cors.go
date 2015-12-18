@@ -69,8 +69,12 @@ func (o *Options) Header(origin string) (headers map[string]string) {
 		return
 	}
 
-	// add allow origin
-	headers[headerAllowOrigin] = origin
+	// add allow origin, if empty add * -- this is ok b/c we already determined allowed above
+	if (origin == "") {
+		headers[headerAllowOrigin] = "*"
+	} else {
+		headers[headerAllowOrigin] = origin		
+	}
 
 	if (o.AllowCredentials) {
 		// add allow credentials
@@ -196,12 +200,14 @@ func (o *Options) Allow(res http.ResponseWriter, req *http.Request, next http.Ha
 		res.WriteHeader(http.StatusOK)
 		return
 	}
+		
 	headers = o.Header(origin)
-
+	
 	for key, value := range headers {
+		
 		res.Header().Set(key, value)
 	}
-
+	
 	next(res, req)
 
 }
